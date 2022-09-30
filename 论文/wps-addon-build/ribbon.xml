@@ -1,0 +1,14 @@
+<customUI xmlns="http://schemas.microsoft.com/office/2006/01/customui" onLoad="">
+    <ribbon startFromScratch="false">
+        <tabs>
+            <tab id="wpsAddinTab" label="论文">
+				<group id="btnDemoGroup" label="格式">
+                    <button id="btnShowMsg" label="参考文献" onAction="test" enabled="true"  getImage="GetImage" visible="true" size="large"/>
+                    <editBox id="editBox" label="运行" enabled="false" getText="box_value" getImage="GetImage" visible="true" size="large"/>
+                    <button id="btnIsEnbable" label="全文" onAction="OnAction" enabled="false"  getImage="GetImage" visible="true" size="large"/>
+                    <button id="btnShowTaskPane" label="任务窗格" onAction="OnAction" enabled="false"  getImage="GetImage" visible="true" size="large"/>
+				</group>
+            </tab>
+        </tabs>
+    </ribbon>
+</customUI>
