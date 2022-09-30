@@ -30,9 +30,9 @@ var WebNotifycount = 0, err, sel,
     au = new RegExp('^(' + Reg_Str(cn_au) + '|' + Reg_Str(en_au) + ')'),
     da = /^\(\d{4}[a-z]?\)\.\s/,
     ti = /^[^]+[\.\?]\s/,
-    ge_so = /^([^,\.]{2,},\s\d*(\([\d\-]+\))?(,\s[a-z\d\-]+)+\.\s)/,
-    th_so = /^[^,\.]{2,}[,\:]\s[^,\.]{2,}\.\s/,
-    so = new RegExp('(' + Reg_Str(ge_so) + '|' + Reg_Str(th_so) + ')(https:\\/\\/[^\.]+\\s)?\\]?\\s*$'),
+    ge_so = /^([a-zA-Z\u4e00-\u9fa5,\&\s,\(\)]{2,},\s\d+(\(\d+(\-\d+)?\))?(,\s[a-z\d(\-\d+)?]+)+\.\s)/,
+    th_so = /^[^,\.\d]{2,}[,\:]\s[^,\.\d]{2,}\.\s/,
+    so = new RegExp('(' + Reg_Str(ge_so) + '|' + Reg_Str(th_so) + ')\\s?\\]?\[^\]*$'),
     reg = new RegExp(Reg_Str(au, da, ti, so));
 
 function Refer() {
@@ -62,26 +62,31 @@ function Refer() {
                 for (let c of chars) { wrd.includes(c) && (wrd = c + ' ') }
                 str += wrd
             }
-            p.Range.Text = str.replace(/\.\s,/g, '.,').replace(/\s\[/g, ' \n[');
+            p.Range.Text = str.replace(/\.\s,/g, '.,').replace(/\s\[/g, ' \n[').replace(/\?\s\.\s/g, '? ');
             //拆分元素
             function Rslice(rs, a, b) { let arr = []; for (let i = a; i <= b; i++) { arr.push(rs.Item(i)) } return arr }
-            let stcs = p.Range.Sentences, stc_n = stcs.Count;
-            if (/^]/.test(stcs.Item(stc_n).Text)) stc_n--; //最后一句为 ] 则取前一句
+            function isNet(str) { let i = 0; net_head.forEach(e => { i += str.includes(e) }); return i }
+            let stcs = p.Range.Sentences, stc_n = stcs.Count, lastText = stcs.Item(stc_n).Text, net_head = ['doi', 'http'];
+            if (/(^]|^\d)/.test(lastText) || isNet(lastText)) stc_n--; //最后一句为 ] 则取前一句
             let authors = Rslice(stcs, 1, stc_n - 3),
                 date = stcs.Item(stc_n - 2),
                 title = stcs.Item(stc_n - 1),
                 source = stcs.Item(stc_n);
-            wps._debug_p = [authors, date.Text, title.Text, source.Text]; //记录拆分信息
             if (stcs.Count < 4) p.Range.Font.Color = 255;
             else Reg_exp(authors, au), Reg_exp(date, da), Reg_exp(title, ti), Reg_exp(source, so); //正则检查标红
+            wps._debug_p = [authors, date.Text, title.Text, source.Text]; //记录拆分信息
             //斜体
-            if (source.Text.split(',').length == 2) source = stcs.Item(stcs.Count - 1); //学位论文title斜体
+            if (source.Text.split(',').length == 2) stc_n--; //学位论文title斜体
+            source = stcs.Item(stc_n);
             let wrds = source.Words, has_trial = '';
             for (let w = 1; w <= wrds.Count; w++) {
                 has_trial += wrds.Item(w).Text;
-                let dots = has_trial.match(/,/g); //逗号数量
-                if (wrds.Item(w).Text === '(' || (dots && dots.length == 2)) break;
-                else wrds.Item(w).Italic = !0;
+                if (source.Text.includes('(')) {
+                    if (wrds.Item(w).Text === '(') break;
+                } else {
+                    if (/\d,/.test(has_trial.slice(-2))) break;
+                }
+                wrds.Item(w).Italic = !0;
             }
             //整体段落格式
             p.Space1(), //*倍行距
