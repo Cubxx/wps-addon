@@ -11,35 +11,46 @@ function OnAddinLoad(ribbonUI) {
 
 }
 function Reg_Str(...regs) { let str = ''; regs.forEach(e => { str += e.toString().slice(1, -1) }); return str }
-function Reg_exp(range, reg) {
+function Reg_exp(range, reg, ctrl = true) {
     if (range === null) return 1;
     let str = '', islist = Array.isArray(range);
     if (islist) {
-        if (reg.test((range.forEach(e => { str += e.Text }), str))) { range.forEach(e => { e.Font.Color = 0 }); return true }
-        else { range.forEach(e => { e.Font.Color = 255 }); return false }
+        if (reg.test((range.forEach(e => { str += e.Text }), str))) { ctrl && range.forEach(e => { e.Font.Color = 0 }); return true }
+        else { ctrl && range.forEach(e => { e.Font.Color = 255 }); return false }
     }
     else {
-        if (reg.test(range.Text)) { range.Font.Color = 0; return true }
-        else { range.Font.Color = 255; return false }
+        if (reg.test(range.Text)) { ctrl && (range.Font.Color = 0); return true }
+        else { ctrl && (range.Font.Color = 255); return false }
     }
 }
+function isNet(str) { let i = 0; net_head.forEach(e => { i += str.includes(e) }); return i }
 
 var WebNotifycount = 0, err, sel,
-    cn_au = /(\[?[\u4e00-\u9fa5]{2,4}(,\s[\u4e00-\u9fa5]{2,4})*(,\s\&\s[\u4e00-\u9fa5]{2,4})?\.\s)/,
-    en_au = /([a-zA-Z\-\s\']+,(\s[A-Z]\.){1,3}(,\s[a-zA-Z\-\s\']+,(\s[A-Z]\.){1,3})*(,\s\&\s[a-zA-Z\-\s\']+,(\s[A-Z]\.){1,3})?\s)/,
+    cn_au = /(\[?[\u4e00-\u9fa5]{2,4}(,\s[\u4e00-\u9fa5]{2,4})*(,\s(\&|\…)\s[\u4e00-\u9fa5]{2,4})?\.\s)/,
+    en_au = /([a-zA-Z\-\s\']+,(\s[A-Z]\.){1,3}(,\s[a-zA-Z\-\s\']+,(\s[A-Z]\.){1,3})*(,\s(\&|\…)\s[a-zA-Z\-\s\']+,(\s[A-Z]\.){1,3})?\s)/,
     au = new RegExp('^(' + Reg_Str(cn_au) + '|' + Reg_Str(en_au) + ')'),
     da = /^\(\d{4}[a-z]?\)\.\s/,
     ti = /^[^]+[\.\?]\s/,
-    ge_so = /^([a-zA-Z\u4e00-\u9fa5,\&\s,\(\)]{2,},\s\d+(\(\d+(\-\d+)?\))?(,\s[a-z\d(\-\d+)?]+)+\.\s)/,
+    ge_so = /^([a-zA-Z\u4e00-\u9fa5,\-\&\s\:\(\)]{2,}(,\s\d*(\(\d+(\-\d+)?\))?)?(,\s[a-zA-Z]?\d+([\-\+][a-zA-Z]?\d+){0,2})+\.\s)/,
     th_so = /^[^,\.\d]{2,}[,\:]\s[^,\.\d]{2,}\.\s/,
-    so = new RegExp('(' + Reg_Str(ge_so) + '|' + Reg_Str(th_so) + ')\\s?\\]?\[^\]*$'),
-    reg = new RegExp(Reg_Str(au, da, ti, so));
+    so = new RegExp('(' + Reg_Str(ge_so) + '|' + Reg_Str(th_so) + ')\\]?\[^\]*$'),
+    reg = new RegExp(Reg_Str(au, da, ti, so)),
+    net_head = ['doi', 'http'],
+    _debug = {
+        txt: '', reds: 0,
+        init: function () { this.txt = '', this.reds = 0 },
+        split_p: function (as, d, t, s) {
+            this.txt = '';
+            as.forEach(e => { this.txt += e.Text }), this.txt = ['===分段信息===', '作者>' + this.txt, '日期>' + d.Text, '标题>' + t.Text, '来源>' + s.Text].join('\n')
+        }
+    };
 
 function Refer() {
-    sel = {};
+    _debug.init(); //初始化
     sel = wps.Selection;
     let ps = sel.Paragraphs, p_space = [],
         chr = ["（）【】，−－–：’？", "()[],---:'?"];
+    // sel.Text = sel.Text.replace(/\s{3,}/g, '\n'); //删除过多换行
     //纠正符号错误
     for (let c = 0; c < chr[0].length; c++) { sel.Text = sel.Text.replace(RegExp(chr[0][c], 'g'), chr[1][c]) }
     //整体字体格式
@@ -56,35 +67,34 @@ function Refer() {
         if (p.Range.Text.length == 1) { p_space.push(p); continue } //跳过空行
         function Modify() {
             //标点后空格
-            let str = '';
+            let str = '', stop = false;
             for (let w = 1; w <= p.Range.Words.Count; w++) {
-                let wrd = p.Range.Words.Item(w).Text, chars = ',.&:?';
-                for (let c of chars) { wrd.includes(c) && (wrd = c + ' ') }
+                let wrd = p.Range.Words.Item(w).Text, chars = ',.&:?…';
+                isNet(wrd) && (stop = true);
+                if (!stop) for (let c of chars) { wrd.includes(c) && (wrd = c + ' ') };
                 str += wrd
             }
             p.Range.Text = str.replace(/\.\s,/g, '.,').replace(/\s\[/g, ' \n[').replace(/\?\s\.\s/g, '? ');
             //拆分元素
             function Rslice(rs, a, b) { let arr = []; for (let i = a; i <= b; i++) { arr.push(rs.Item(i)) } return arr }
-            function isNet(str) { let i = 0; net_head.forEach(e => { i += str.includes(e) }); return i }
-            let stcs = p.Range.Sentences, stc_n = stcs.Count, lastText = stcs.Item(stc_n).Text, net_head = ['doi', 'http'];
-            if (/(^]|^\d)/.test(lastText) || isNet(lastText)) stc_n--; //最后一句为 ] 则取前一句
+            let stcs = p.Range.Sentences, stc_n = stcs.Count, lastHeadText = stcs.Item(stc_n).Words.Item(1).Text;
+            if (isNet(lastHeadText) || lastHeadText.includes(']')) stc_n--; //首词为 ] net_head 则取前一句
             let authors = Rslice(stcs, 1, stc_n - 3),
                 date = stcs.Item(stc_n - 2),
                 title = stcs.Item(stc_n - 1),
                 source = stcs.Item(stc_n);
             if (stcs.Count < 4) p.Range.Font.Color = 255;
-            else Reg_exp(authors, au), Reg_exp(date, da), Reg_exp(title, ti), Reg_exp(source, so); //正则检查标红
-            wps._debug_p = [authors, date.Text, title.Text, source.Text]; //记录拆分信息
+            else (Reg_exp(authors, au) * Reg_exp(date, da) * Reg_exp(title, ti) * Reg_exp(source, so) == 0 && _debug.reds++); //正则错误标红
+            _debug.split_p(authors, date, title, source); //记录拆分信息
             //斜体
-            if (source.Text.split(',').length == 2) stc_n--; //学位论文title斜体
-            source = stcs.Item(stc_n);
-            let wrds = source.Words, has_trial = '';
+            if (Reg_exp(source, th_so, false)) stc_n--; //学位论文title斜体
+            let trial_txt = stcs.Item(stc_n), wrds = trial_txt.Words, has_trial = '';
             for (let w = 1; w <= wrds.Count; w++) {
                 has_trial += wrds.Item(w).Text;
-                if (source.Text.includes('(')) {
+                if (trial_txt.Text.includes('(')) {
                     if (wrds.Item(w).Text === '(') break;
                 } else {
-                    if (/\d,/.test(has_trial.slice(-2))) break;
+                    if (/\s?\d,\s?/.test(has_trial.slice(-3))) break;
                 }
                 wrds.Item(w).Italic = !0;
             }
@@ -98,12 +108,12 @@ function Refer() {
         }
         try { Modify() } catch (e) { console.log(p.Range.Text + '\n', e); }
     }//*/
-    p_space.forEach(e => { e.Range.Text = '' }) //删除空行
+    // p_space.forEach(e => { e.Range.Text = '' }) //删除空行
     // sel.SortAscending();
     return !0;
 }
-function test(control) { Refer(); return !0 }
-function box_value(text, control) { return !0 }
+function test() { Refer(); return !0 }
+function box_value(text, control) { return true }
 function OnAction(control) {
     const eleId = control.Id
     switch (eleId) {
@@ -136,7 +146,6 @@ function OnAction(control) {
     }
     return true
 }
-
 function GetImage(control) {
     const eleId = control.Id
     switch (eleId) {
