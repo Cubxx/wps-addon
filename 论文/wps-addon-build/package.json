@@ -1,0 +1,12 @@
+{
+	"name": "论文",
+	"addonType": "wps",
+	"version": "1.0.0",
+	"description": "文献排序",
+	"devDependencies": {
+		"wps-jsapi": "latest"
+	},
+	"dependencies": {
+		"body-parser": "^1.20.0"
+	}
+}

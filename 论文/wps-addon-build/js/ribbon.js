@@ -28,7 +28,8 @@ function Rang_Str(range) {
 }
 function isNet(str) { let i = 0; net_head.forEach(e => { i += str.includes(e) }); return i }
 
-var sel,
+{
+    var sel,
     cn_au = /(\[?[\u4e00-\u9fa5]{2,4}(, [\u4e00-\u9fa5]{2,4})*(, (\&|\…|\. \. \.) [\u4e00-\u9fa5]{2,4})?\. )/,
     en_au = /([a-zA-Z\- \']+,( [A-Z]\.){1,3}(, [a-zA-Z\- \']+,( [A-Z]\.){1,3})*(, (\&|\…|\. \. \.) [a-zA-Z\- \']+,( [A-Z]\.){1,3})? )/,
     au = new RegExp('^(' + Reg_Str(cn_au) + '|' + Reg_Str(en_au) + ')'),
@@ -48,11 +49,12 @@ var sel,
         },
         time: function (func, c) { let a = new Date().getTime(); func(); let d = new Date().getTime() - a; c && console.log('运行时间：' + d); return d }
     };
+}
 
 function Refer(control) {
     sel = wps.Selection;
     let ps = sel.Paragraphs, p_space = [],
-        chr_swap = ["（）【】，−－–：’？！", "()[],---:'?!"], chr_spac = ',.&:?…!';
+        chr_swap = ["（）【】，−－–：’？！ ．", "()[],---:'?! ."], chr_spac = ',.&:?…!';
     switch (control.Id) {
         case 'format':
             function formated() {
@@ -89,6 +91,7 @@ function Refer(control) {
                         let stop_add = false;
                         p.Range.Text = Add_spac(p.Range.Sentences)
                             .replace(/\.\s,/g, '.,')
+                            .replace(/\.\s\./g, '.')
                             .replace(/,\s{2,}\&/g, ', &')
                             .replace(/\s\[/g, ' \n[')
                             .replace(/\?\s\.\s/g, '? ')
@@ -108,15 +111,14 @@ function Refer(control) {
                                     title = Rslice(stcs, i + 1, stc_n - 1)
                             }
                         }
-                        if (date === undefined) { //date无匹配
+                        if (date === undefined || stcs.Count < 4) { //date无匹配
                             // p.Range.Text = '>>. (2333a). >>' + p.Range.Text,
                             p.Range.Font.Bold = !0, p.Range.Font.Color = 255;
                             _debug.reds.now.push(p.Range);
                         } else {
                             //拆分成功
-                            if (stcs.Count < 4) p.Range.Font.Color = 255;
-                            else Reg_exp(authors, au), Reg_exp(date, da), Reg_exp(title, ti), Reg_exp(source, so),
-                                _debug.rcd_segs(authors, date, title, source); //记录调试信息
+                            Reg_exp(authors, au), Reg_exp(date, da), Reg_exp(title, ti), Reg_exp(source, so);
+                            _debug.rcd_segs(authors, date, title, source); //记录调试信息
                             //斜体
                             if (Reg_exp(source, th_so, false)) stc_n--; //学位论文title斜体
                             let trial_txt = stcs.Item(stc_n), wrds = trial_txt.Words, has_trial = '';

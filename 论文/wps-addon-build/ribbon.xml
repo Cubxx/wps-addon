@@ -3,14 +3,14 @@
         <tabs>
             <tab id="wpsAddinTab" label="论文">
                 <group id="Refer_grp" label="参考文献">
-                    <button id="format" label="格式化" onAction="Refer" enabled="true" imageMso="AutoFormat" size="large"/>
+                    <button id="format" label="格式化" onAction="Refer" enabled="true" imageMso="Spelling" size="large"/>
                     <button id="up_err" label="" onAction="Refer" enabled="true" imageMso="OutlineMoveUp" size="small"/>
                     <button id="down_err" label="" onAction="Refer" enabled="true" imageMso="OutlineMoveDown" size="small"/>
-                    <editBox id="editBox" label="运行" enabled="false" getText="box_value" visible="false" size="large"/>
+                    <editBox id="editBox" label="运行" getText="box_value" enabled="false" visible="false" size="large"/>
                 </group>
                 <group  id="Other_grp" label="其他">
                     <button id="btnIsEnbable" label="全文" enabled="false" imageMso="Text" size="large"/>
-                    <button id="TaskPane" label="帮助文档" onAction="ShowTaskPane" enabled="true" imageMso="OutlineDemoteToBodyText" size="large"/>
+                    <button id="TaskPane" label="帮助文档" onAction="ShowTaskPane" enabled="true" imageMso="Help" size="large"/>
                 </group>
             </tab>
         </tabs>

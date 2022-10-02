@@ -20,15 +20,24 @@
 </head>
 
 <body>
-    <h4>更新于 2022.10.2</h4>
+    <pre>---更新于 2022.10.3</pre>
+    <p>
+        <b>参考链接</b>
+        <li onclick="shellExecuteByOAAssist(apa)">APA格式</li>
+        <li onclick="shellExecuteByOAAssist(aps)">心理学报投稿指南</li>
+        <li onclick="shellExecuteByOAAssist(rdm)">本加载项说明</li>
+    </p>
     <hr>
-    <div id="content"></div>
+    <div id="content">Loading from GitHub...</div>
     <script>
-        $.get('https://cubxx.github.io/wps-addon/%E8%AE%BA%E6%96%87/README.md',
-            function (response, status, xhr) {
-                window.c = $("#content").html(marked(response));
-            }
-        );
+        var apa = 'https://apastyle.apa.org/style-grammar-guidelines/references/elements-list-entry',
+            aps = 'https://journal.psych.ac.cn/xlxb/CN/column/column6.shtml',
+            rdm = 'https://github.com/Cubxx/wps-addon/tree/paper/%E8%AE%BA%E6%96%87'; //paper分支
+        $.get('https://cubxx.github.io/wps-addon/%E8%AE%BA%E6%96%87/Regexp.md',
+            function (response, status, xhr) { $("#content").html(marked(response)) }
+        ).error(
+            function (xhr, status, info) { $("#content").text('连接Github失败🌚') }
+        )
     </script>
 </body>
 
