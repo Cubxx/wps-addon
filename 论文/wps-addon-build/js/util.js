@@ -12,7 +12,7 @@ function GetUrlPath() {
  * 通过wps提供的接口执行一段脚本
  * @param {*} param 需要执行的脚本
  */
-function shellExecuteByOAAssist(param) {
+function shellExecuteByOAAssist(param) { //本地浏览器打开网页，window.open将在WPS内打开
     if (wps != null) {
         wps.OAAssist.ShellExecute(param)
     }
