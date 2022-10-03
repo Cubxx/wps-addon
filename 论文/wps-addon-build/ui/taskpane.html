@@ -20,18 +20,19 @@
 </head>
 
 <body>
-    <pre>---更新于 2022.10.3</pre>
+    <pre>---更新于 2022.10.6 Beta版本</pre>
     <p>
         <b>参考链接</b>
         <li onclick="shellExecuteByOAAssist(apa)">APA格式</li>
-        <li onclick="shellExecuteByOAAssist(aps)">心理学报投稿指南</li>
+        <li onclick="shellExecuteByOAAssist(aps)">心理学报参考文献格式</li>
         <li onclick="shellExecuteByOAAssist(rdm)">本加载项说明</li>
     </p>
+    <br>
     <hr>
     <div id="content">Loading from GitHub...</div>
     <script>
         var apa = 'https://apastyle.apa.org/style-grammar-guidelines/references/elements-list-entry',
-            aps = 'https://journal.psych.ac.cn/xlxb/CN/column/column6.shtml',
+            aps = 'https://journal.psych.ac.cn/xlxb/fileup/0439-755X/ITEM/20220223114333.pdf',
             rdm = 'https://github.com/Cubxx/wps-addon/tree/paper/%E8%AE%BA%E6%96%87'; //paper分支
         $.get('https://cubxx.github.io/wps-addon/%E8%AE%BA%E6%96%87/Regexp.md',
             function (response, status, xhr) { $("#content").html(marked(response)) }
