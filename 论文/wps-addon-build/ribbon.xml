@@ -8,6 +8,12 @@
                     <button id="down_err" label="" onAction="Refer" enabled="true" imageMso="OutlineMoveDown" size="small"/>
                     <editBox id="editBox" label="运行" getText="box_value" enabled="false" visible="false" size="large"/>
                 </group>
+                <group id="Discuss_grp" label="讨论">
+                    <button id="write" label="检查索引" onAction="Discuss" enabled="true" imageMso="Spelling" size="large"/>
+                    <button id="" label="" onAction="" enabled="false" imageMso="OutlineMoveUp" size="small"/>
+                    <button id="" label="" onAction="" enabled="false" imageMso="OutlineMoveDown" size="small"/>
+                    <editBox id="" label="运行" getText="box_value" enabled="false" visible="false" size="large"/>
+                </group>
                 <group  id="Other_grp" label="其他">
                     <button id="btnIsEnbable" label="全文" enabled="false" imageMso="Text" size="large"/>
                     <button id="TaskPane" label="帮助文档" onAction="ShowTaskPane" enabled="true" imageMso="Help" size="large"/>
