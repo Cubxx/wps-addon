@@ -9,7 +9,7 @@
                     <editBox id="editBox" label="运行" getText="box_value" enabled="false" visible="false" size="large"/>
                 </group>
                 <group id="Discuss_grp" label="讨论">
-                    <button id="write" label="检查索引" onAction="Discuss" enabled="true" imageMso="Spelling" size="large"/>
+                    <button id="write" label="核对" onAction="Discuss" enabled="true" imageMso="Spelling" size="large"/>
                     <button id="" label="" onAction="" enabled="false" imageMso="OutlineMoveUp" size="small"/>
                     <button id="" label="" onAction="" enabled="false" imageMso="OutlineMoveDown" size="small"/>
                     <editBox id="" label="运行" getText="box_value" enabled="false" visible="false" size="large"/>

@@ -15,14 +15,15 @@ var Rang_Str = function (range) {
     if (Array.isArray(range)) { let str = ''; return (range.forEach(e => { str += e.Text }), str) }
     else return range.Text;
 }
-var Data_Refs = [],
+var Data_Refs = { values: [], ranges: [], init: function () { this.values = [], this.ranges = [] } },
     _debug = {
         log: '', segments: {}, reds: { now: [], before: [], index: 0 }, num: 0, dbg: void 0,
         init: function () { this.log = '', this.segments = {}, this.reds.now = [], this.num = 0 },
         rcd_segs: function (segs) {
-            let str_arr = [];
-            segs.forEach((e, i) => { this.segments[i + 'N_' + (e.length || 1)] = Rang_Str(e); str_arr.push(Rang_Str(e)); })
-            Data_Refs.push(str_arr);
+            this.segments = {}
+            segs.forEach((e, i) => { this.segments[i + 'N_' + (e.length || 1)] = Rang_Str(e); })
+            Data_Refs.values.push(Object.values(this.segments));
+            Data_Refs.ranges.push(segs);
         },
         time: function (func, c) {
             let a = new Date().getTime(); func();
@@ -32,6 +33,11 @@ var Data_Refs = [],
         }
     }
 
+/**
+ * 参考文献格式化
+ * @param {*} control 
+ * @returns 
+ */
 function Refer(control) {
     {//功能组
         var Reg_Str = function (...regs) {
@@ -150,7 +156,7 @@ function Refer(control) {
                         wrds.Item(w).Italic = !0;
                     }
                     //段落格式
-                    p.Space1(), //*倍行距
+                    p.Space15(), //*倍行距
                         p.SpaceAfter = 0, //段后间距
                         p.SpaceBefore = 0,
                         p.CharacterUnitLeftIndent = 0, //左缩进量
@@ -163,8 +169,8 @@ function Refer(control) {
         }
     }
     {//变量
-        var cn_au = /(\[?[\u4e00-\u9fa5]{2,4}(, [\u4e00-\u9fa5]{2,4}){0,5}(, (\.\.\. )?[\u4e00-\u9fa5]{2,4})?\. )/,
-            en_au = /([a-zA-Z\- \']+,( [A-Z]\.){1,3}(, [a-zA-Z\- \']+,( [A-Z]\.){1,3}){0,5}(, (\&|\…|\. \. \.) [a-zA-Z\- \']+,( [A-Z]\.){1,3})? )/,
+        var cn_au = /(^\[?[\u4e00-\u9fa5]{2,4}(, [\u4e00-\u9fa5]{2,4}){0,5}(, (\.\.\. )?[\u4e00-\u9fa5]{2,4})?\. $)/,
+            en_au = /(^[a-zA-Z\-\']+,( [A-Z]\.){1,3}(, [a-zA-Z\-\']+,( [A-Z]\.){1,3}){0,5}(, (\&|\.\.\.) [a-zA-Z\-\']+,( [A-Z]\.){1,3})? $)/,
             au = new RegExp('^(' + Reg_Str(cn_au) + '|' + Reg_Str(en_au) + ')'),
             da = /(\(\d{4}[a-z]?\)\. )/, //(1234b). /
             ti = /([^]+[\.\?]|[^]+\? [^]+\.) /,
@@ -184,7 +190,7 @@ function Refer(control) {
     switch (control.Id) {
         case 'format':
             if (pars.Count != 1) { //不止选择一段
-                Data_Refs = [];
+                Data_Refs.init();
                 console.log('每秒词数：' + 1000 / (_debug.time(() => { formated() }, !1) / _debug.num));
                 _debug.log = _debug.reds.now.length + '个疑似错误^_^';
                 alert('检查成功，' + _debug.reds.now.length + '个疑似错误');
@@ -209,29 +215,61 @@ function Refer(control) {
 
 var dependent_variables = [],
     independent_variables = [];
+/**
+ * 核对索引
+ * @returns 
+ */
 function Discuss() {
+    //字符串正则不匹配，返回空数组
+    const _match = String.prototype.match;
+    String.prototype.match = function (reg) {
+        let res = _match.call(this, reg);
+        return res == null ? [] : res;
+    }
+    //删除数组重复元素
+    Array.prototype.delRepeatElements = function () {
+        let _this = [];
+        this.forEach((e, i) => { _this[i] = e + '' }); //元素转化为字符串
+        _this = [...new Set(_this)[Symbol.iterator]()]; //删除元素
+        _this.forEach((e, i) => { _this[i] = e.split(',') }); //元素转化为数组
+        return _this;
+    }
     var sel = wps.Selection, txt = sel.Text;
-    // Data_Refs = [];
     //纠正错误字符
     chr_swap = ['（）', '()'];
     // for (let c = 0; c < chr_swap[0].length; c++) { sel.Text = sel.Text.replace(RegExp(chr_swap[0][c], 'g'), chr_swap[1][c]) }
-    /*/找到()的位置，根据位置提取索引
-    var lefts = [...txt.matchAll(/\(/g)], rigths = [...txt.matchAll(/\)/g)];
-    if (lefts.length == rigths.length) {
-        for (let i = 0; i < lefts.length; i++) {
-            let ref = txt.slice(lefts[i].index, rigths[i].index + 1)
-            if (/\d{4}/.test(ref)) Data_Refs.push(ref);
+    try {
+        //提取正文索引
+        var mt = /[^a-zA-Z\u4e00-\u9fa5\(\)]+[a-zA-Z\u4e00-\u9fa5]+(等人)?\(\d{4}\)/g, //。abc等人(2333)
+            gt = /\([^\(\)]+\d{4}\)/g;
+        var Date_mainTxt = [], arr = [];
+        for (let i of txt.match(gt)) {
+            arr.push(...i.split('; '))
         }
-    } else console.log('左右括号数量不一致');*/
-
-    //输出正文中未引用的文献
-    _debug.dbg = txt;
-    for (let cite of Data_Refs) {
-        let name = cite[0].split(', ')[0].replace(/\. /g, ''), //Dickman
-            date = cite[1].split('. ')[0].slice(1, -1); //2020
-        if (!txt.includes(name) || !txt.includes(date)) console.log('CAN\'T FIND ' + name + date)
-    }
-
+        Date_mainTxt = [...txt.match(mt), ...arr];
+        console.log('正文中的索引:\n', Date_mainTxt)
+        console.log('参考文献的索引:\n', Data_Refs.values);
+        //比对正文索引和参考文献
+        var match_ok = [], match_lack = [];
+        Data_Refs.values.forEach((ref, i) => { //遍历参考文献，事先标蓝
+            Data_Refs.ranges[i][1].Font.ColorIndex = 2;
+        });
+        Date_mainTxt.forEach((cite) => { //遍历正文索引
+            let find_times = 0;
+            Data_Refs.values.forEach((ref, i) => { //遍历参考文献
+                let name = ref[0].split(', ')[0].replace(/\. /g, ''), //Dickman
+                    date = ref[1].split('. ')[0].slice(1, -1); //2020
+                if (cite.includes(name) && cite.includes(date)) {
+                    find_times++;
+                    match_ok.push([name, date]);
+                    Data_Refs.ranges[i][1].Font.ColorIndex = 1;
+                }
+            });
+            if (find_times == 0) match_lack.push(cite);
+        });
+        console.log('匹配成功的索引:\n', match_ok.delRepeatElements());
+        console.log('缺少参考文献的正文索引:\n', match_lack);
+    } catch (err) { console.log('\n', err) }
     return !0;
 }
 
